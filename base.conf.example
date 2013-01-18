@@ -1,0 +1,6 @@
+#for mysql
+[dbmysql]
+    host        =       localhost
+    user        =       test
+    password    =       test
+    database    =       r2

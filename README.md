@@ -1,7 +1,11 @@
 AWS collector
 
 Install:
-1. You must install aws-sk
+1. You must install aws-sdk
    Use this instruction:
    https://github.com/aws/aws-sdk-php#installing-via-composer
-
+2. Change path for aws-sdk in file bypassing.php
+   default path is "require 'vendor/autoload.php';"
+3. Copy file base.conf.example to file base.conf and change 
+   user, password and host for mysql database.
+   
