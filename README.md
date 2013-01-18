@@ -19,4 +19,17 @@ Run command for refreshing information about user's files in S3
 
 
 
-
+Information:
+Database: r2
+Table s3objects
+`s3objects (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id_parent` bigint(20) DEFAULT NULL,
+  `id_user` int(11) DEFAULT NULL,
+  `title` varchar(200) DEFAULT NULL,
+  `folder` tinyint(1) DEFAULT NULL,
+  `size` bigint(20) DEFAULT NULL,
+  `timepassing` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `actual` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+)
