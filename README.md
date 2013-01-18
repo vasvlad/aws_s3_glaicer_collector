@@ -10,4 +10,13 @@ Install:
    user, password and host for mysql database.
 4. Create user with privalaging for databse 'r2'. See command below:
    grant all on base.* to user@localhost identified by "password"
-5.
+
+Run command for refreshing information about user's files in S3
+1. Run in console command bypassing.php with paramter user_id
+   Example:
+ php bypassing.php 1243
+ 
+
+
+
+
