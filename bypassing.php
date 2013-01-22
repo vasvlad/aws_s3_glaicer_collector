@@ -1,6 +1,6 @@
 <?php
 ini_set('display_errors',1);
-require("connect/connect.inc");
+require("connect.inc");
 require 'vendor/autoload.php';
 use Aws\Common\Aws;
 
@@ -18,10 +18,16 @@ class passing
 	{
 		$this->id_user = $id_us;
 		$con=new Connect_mysql();
-		$this->db = new PDO("mysql:host=$con->host;dbname=$con->databaseName", $con->user, $con->password);  
-		$this->db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION); 
+		try { 
+			$this->db = new PDO("mysql:host=$con->host;dbname=$con->databaseName", $con->user, $con->password);  
+			$this->db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION); 
+		}  
+		catch(PDOException $e) {  
+		    echo $e->getMessage(); 
+		    die ("\nYou don't have connection to database\n");
+		}
 		/**
-		* Create database if it requered  
+		* Create database if it required  
 		*/
 		$this->db->exec("CREATE TABLE IF NOT EXISTS s3objects (id bigint NOT NULL auto_increment,id_parent bigint,id_user int(11),
 		title varchar(200),folder tinyint(1),size bigint,timepassing timestamp,actual tinyint(1), PRIMARY KEY  (`id`))");
@@ -30,12 +36,21 @@ class passing
 	* Find all objects in Amazon S3
 	*
 	*/
-	function execute() 
+	function execute()
 	{
-		echo "run";
-		$ar = '/var/www/config.php';
-		print_r($ar);
-		$s3 = Aws::factory('/var/www/config.php')->get('s3');
+		/* */
+		$sel="SELECT *  FROM customers  WHERE id='".$this->id_user."' AND active=1";
+		$result = $this->db->query($sel);
+		$key =0;
+		$secret = 0;
+		foreach($result as $row) {
+			$key= $row['key'] ;
+			$secret= $row['secret'] ;
+		}
+		
+		$aws = Aws::factory(array('key'=>$key,'secret'=>$secret,'region'=>'us-east-1'));
+		$s3 = $aws->get('s3');
+		
 		/* */
 		$sel="SELECT id FROM s3objects WHERE id_user='".$this->id_user."' AND id_parent=0 AND actual=0";
 		$result = $this->db->query($sel);
@@ -125,7 +140,6 @@ class passing
 		$this->db->exec($sel);
 		$sel = "UPDATE s3objects SET actual=1 where  actual=0 and id_user=".$this->id_user;
 		$this->db->exec($sel); 
-		echo "dun";
 	}
 
     /* Search all parents of this object */    
@@ -152,8 +166,8 @@ class passing
 		return $id_parent;
 	}
 }
- $id_user=$argv[1] ;
- $command = new passing($id_user);
- $command->execute();
+	$id_user=$argv[1] ;
+	$command = new passing($id_user);
+	$command->execute();
 
 ?>
