@@ -16,6 +16,7 @@ Install:
    'grant all on base.* to user@localhost identified by "password"'
 
 Run command for refreshing information about user's files in S3
+
 1. Run in console command bypassing.php with paramter user_id
    Example:
  php bypassing.php 1243
@@ -24,7 +25,9 @@ Run command for refreshing information about user's files in S3
 
 
 Information:
+
 Database: r2
+
 Table s3objects
 `s3objects (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
