@@ -11,12 +11,13 @@ class passing
   */
   private $db;
   private $id_user;
+  private $name_user;
   /**
       Try to connect to database after creation
 	 */
-	public function __construct($id_us)
+	public function __construct($name_us)
 	{
-		$this->id_user = $id_us;
+		$this->name_user = $name_us;
 		$con=new Connect_mysql();
 		try { 
 			$this->db = new PDO("mysql:host=$con->host;dbname=$con->databaseName", $con->user, $con->password);  
@@ -26,11 +27,6 @@ class passing
 		    echo $e->getMessage(); 
 		    die ("\nYou don't have connection to database\n");
 		}
-		/**
-		* Create database if it required  
-		*/
-		$this->db->exec("CREATE TABLE IF NOT EXISTS s3objects (id bigint NOT NULL auto_increment,id_parent bigint,id_user int(11),
-		title varchar(200),folder tinyint(1),size bigint,timepassing timestamp,actual tinyint(1), PRIMARY KEY  (`id`))");
 	}
 	/**
 	* Find all objects in Amazon S3
@@ -39,12 +35,15 @@ class passing
 	function execute()
 	{
 		/* */
-		$sel="SELECT *  FROM customers  WHERE id='".$this->id_user."' AND active=1";
+        /* Select id of customer */
+        $sel="SELECT * FROM customers  WHERE name='".$this->name_user."' AND active=1";
 		$result = $this->db->query($sel);
+
 		$key =0;
 		$secret = 0;
 		foreach($result as $row) {
 			$key= $row['key'] ;
+			$this->id_user = $row['id'];
 			$secret= $row['secret'] ;
 		}
 		
