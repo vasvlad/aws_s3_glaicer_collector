@@ -19,7 +19,9 @@ Run command for refreshing information about user's files in S3
 
 1. Run in console command bypassing.php with paramter user_id
    Example:
- php bypassing.php 1243
+ php bypassing.php user@company.com
+
+Where  user@company.com is username in database
  
 
 
