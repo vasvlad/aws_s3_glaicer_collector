@@ -85,13 +85,16 @@ class passing
             /* Get all objects in Bucket */
 			foreach ($s3->getIterator('ListObjects', array('Bucket' => $bucket['Name'])) as $object) {
 				$arr=split('/',$object['Key']);
+                print_r ($arr); /* For debug only */
 				$c=count($arr);
 				if ($arr[$c-1]) {
 					$size=$object['Size'];
 					$title=$arr[$c-1];
 					if ($c < 2) {
-						$id_parent=$id_bucket;
+                        $id_parent=$id_bucket;
+                        echo "Variant 1"; /* For debug only */
 					} else {
+                        echo "Variant 2"; /* For debug only */
                         /* Look up parent of this object */
 						$sel="SELECT id FROM s3objects WHERE title=\"".addslashes($arr[$c-2])."\" AND actual=0 and id_user=".$this->id_user." ORDER BY id  desc LIMIT 1";
 						$res = $this->ExecQuery($sel);
