@@ -35,7 +35,7 @@ class passing
 	{
 		/* */
         /* Select id of customer */
-		$sel="SELECT * FROM customers  WHERE name='".$this->name_user."'";
+		$sel="SELECT * FROM customers  WHERE name=\"".addslashes($this->name_user)."\"";
 		
 		$result = $this->ExecQuery($sel);
 		$arr = $result->fetchAll(PDO::FETCH_ASSOC);
