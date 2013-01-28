@@ -97,6 +97,7 @@ class passing
                         echo "Variant 2"; /* For debug only */
                         /* Look up parent of this object */
 						$sel="SELECT id FROM s3objects WHERE title=\"".addslashes($arr[$c-2])."\" AND actual=0 and id_user=".$this->id_user." ORDER BY id  desc LIMIT 1";
+                        echo $sel;  /* For debug only */ 
 						$res = $this->ExecQuery($sel);
 						foreach($res as $r) {
 							$id_parent= $r['id'] ;
