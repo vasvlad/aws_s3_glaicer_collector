@@ -176,6 +176,7 @@ class passing
 /* Execution query */    
 	private function ExecQuery($sql)
 	{
+        echo $sql."\n";
 		if (preg_match("/Select/i",$sql)) {
 		    $result=$this->db->query($sql);
 		} else {
