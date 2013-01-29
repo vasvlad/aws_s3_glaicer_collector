@@ -84,64 +84,45 @@ class passing
 			}
             /* Get all objects in Bucket */
 			foreach ($s3->getIterator('ListObjects', array('Bucket' => $bucket['Name'])) as $object) {
-                echo "Bucket ". $bucket['Name'] . '/' . $object['Key'] . PHP_EOL;
+                echo "\n Bucket ". $bucket['Name'] . '/' . $object['Key'] . PHP_EOL;
 				$arr=split('/',$object['Key']);
-                print_r ($arr); /* For debug only */
+				$arr1=array_slice($arr,0,count($arr)-1);
+				if (count($arr)==1) {
+				    $id_parents_list=$id_bucket;
+				    echo " \nfile in bucket \n";
+				} else {
+				    $id_parents_list=$this->CreateParent($id_bucket,$arr1);
+				}
+				
+				echo "   \nid_parents_list $id_parents_list";
+#                print_r ($arr); /* For debug only */
 				$c=count($arr);
 				if ($arr[$c-1]) {
 					$size=$object['Size'];
 					$title=$arr[$c-1];
-					if ($c < 2) {
-                        $id_parent=$id_bucket;
-                        echo "Variant 1"; /* For debug only */
+					$arr_id='';
+					if (preg_match("/,/i",$id_parents_list)) {
+						$arr_id=split(',',$id_parents_list);
 					} else {
-                        echo "Variant 2\n"; /* For debug only */
-                        /* Look up parent of this object */
-						$sel="SELECT id FROM s3objects WHERE title=\"".addslashes($arr[$c-2])."\" AND actual=0 and id_user=".$this->id_user." ORDER BY id  desc LIMIT 1";
-                        echo $sel;  /* For debug only */ 
-						$res = $this->ExecQuery($sel);
-						foreach($res as $r) {
-							$id_parent= $r['id'] ;
-						}
+						$arr_id[0]=$id_parents_list;
 					}
+					$id_parent = $arr_id[count($arr_id)-1];
                     /* Check this object */
 					$sel="SELECT id FROM s3objects WHERE title=\"".addslashes($title)."\" AND id_parent=$id_parent AND actual=0 and id_user=".$this->id_user;
 					$result = $this->ExecQuery($sel);
 					$num=$result->fetchColumn();
-                    if ($num == 0) {
+					if ($num == 0) {
                         /* Add the new object(file) to databse */
 						$insert = "INSERT INTO s3objects (id_parent,id_user,title,folder,size,timepassing,actual) VALUES ($id_parent,".$this->id_user.",\"".addslashes($title)."\",0,$size,unix_timestamp(),0)";
 						$this->ExecQuery($insert);
 					}
-					$upd=$this->SearchParent($id_parent);
                     /* Update size of each of  objects related with current object */
-					$insert = "UPDATE s3objects SET size=size+$size WHERE id in ($upd)";
+					$id_parents_list.=",".$id_userparent;
+					$insert = "UPDATE s3objects SET size=size+$size WHERE id in ($id_parents_list)";
 					$this->ExecQuery($insert);
-				} else {
-					$title=$arr[$c-2];
-					if ($c < 3) {
-						$id_parent=$id_bucket;
-					} else {
-                        /* Check folder */
-						$sel="SELECT id FROM s3objects WHERE title=\"".addslashes($arr[$c-3])."\" AND actual=0 and id_user=".$this->id_user." ORDER BY title DESC LIMIT 1";
-						$res = $this->ExecQuery($sel);
-						foreach($res as $r) {
-							$id_parent= $r['id'] ;
-						}
-					}
-					$sel="SELECT id FROM s3objects WHERE title=\"".addslashes($title)."\" AND id_parent=$id_parent AND actual=0 and id_user=".$this->id_user;
-					$result = $this->ExecQuery($sel);
-					$num=$result->fetchColumn();
-					if ($num == 0) {
-                        /* Add the new object(folder) to databse */
-						$insert = "INSERT INTO s3objects (id_parent,id_user,title, folder,size,timepassing,actual) VALUES ($id_parent,".$this->id_user.",\"".addslashes($title)."\",1,0,unix_timestamp(),0)";
-						$this->ExecQuery($insert);
-					}
-					$result = $this->db->query($sel);
-					foreach($result as $row) {
-						$id_folder= $row['id'] ;
-					}
-				} 
+					
+					
+				}
 			}
 		}
         /* Switch to current (actual) dataset */
@@ -173,6 +154,41 @@ class passing
 			$id_parent = $id;
 		}
 		return $id_parent;
+	}
+	
+	
+	private function CreateParent($id_bucket,$arr_full) /*  */
+	{
+		$id_res="";
+		$id_parent=$id_bucket;
+		$id_res.=$id_parent.",";
+#$		$arr=split('/',$arr_full);
+		for($i=0;$i<count($arr_full);$i++) {
+		    $title=$arr_full[$i];
+		    $sel="SELECT id FROM s3objects WHERE title=\"".addslashes($title)."\" AND id_parent=$id_parent AND actual=0 and id_user=".$this->id_user;
+		    $result = $this->ExecQuery($sel);
+		    $res=$result->fetchAll(PDO::FETCH_ASSOC);;
+		    if ($res) {
+			foreach($res as $row) {
+				$id_parent=$row['id'] ;
+			}
+			$id_res.=$id_parent.",";
+		    } else {
+			$insert = "INSERT INTO s3objects (id_parent,id_user,title, folder,size,timepassing,actual) VALUES ($id_parent,".$this->id_user.",\"".addslashes($title)."\",1,0,unix_timestamp(),0)";
+			$result = $this->ExecQuery($insert);
+			$last_query = 'SELECT LAST_INSERT_ID() as last_id';
+			$last_id = $this->ExecQuery($last_query);
+			$res = $last_id->fetchAll(PDO::FETCH_ASSOC);
+			foreach ($res as $row)  {
+			    $id_parent = $row['last_id'];
+			}
+			$id_res.=$id_parent.",";
+			
+		    }
+		}
+		$id_res=substr($id_res,0,strlen($id_res)-1);
+		return $id_res;
+		
 	}
 /* Execution query */    
 	private function ExecQuery($sql)
