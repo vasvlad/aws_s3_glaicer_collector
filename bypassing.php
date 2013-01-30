@@ -14,14 +14,14 @@ class passing
   private $name_user;
   /**
       Try to connect to database after creation
-	 */
+  */
 	public function __construct($name_us)
 	{
 		$this->name_user = $name_us;
 		$con=new Connect_mysql();
 		try { 
 			$this->db = new PDO("mysql:host=$con->host;dbname=$con->databaseName", $con->user, $con->password);
-		}  
+		}
 		catch(PDOException $e) {  
 		    echo $e->getMessage(); 
 		    die ("\nYou don't have connection to database\n");
@@ -60,7 +60,7 @@ class passing
 		$result = $this->db->query($sel);
 		$num=$result->fetchColumn();
 		if ($num == 0) {
-			$insert = "INSERT INTO s3objects (id_parent,id_user, folder,size,timepassing,actual) VALUES (0,".$this->id_user.",1,0,unix_timestamp(),0)";
+			$insert = "INSERT INTO s3objects (id_parent,id_user,title, folder,size,timepassing,actual) VALUES (0,".$this->id_user.",\"".addslashes($this->name_user)."\",1,0,unix_timestamp(),0)";
 			$this->ExecQuery($insert);
 		}
 		$id_userparent = 0; /*id в таблице s3 object с id_user = $this->id_user*/
@@ -183,13 +183,13 @@ class passing
 		$id_res=substr($id_res,0,strlen($id_res)-1);
 		return $id_res;
 	}
-/* Execution query */    
+/* Execution query */
 	private function ExecQuery($sql)
 	{
 		if (preg_match("/Select/i",$sql)) {
-		    $result=$this->db->query($sql);
+			$result=$this->db->query($sql);
 		} else {
-		    $result=$this->db->exec($sql);
+			$result=$this->db->exec($sql);
 		}
 		$error_array = $this->db->errorInfo();
 		if($this->db->errorCode() != 0000) {
@@ -198,7 +198,7 @@ class passing
 			die ($stro);
 			
 		} else  {
-		    return $result;
+			return $result;
 		}
 	}
 }
