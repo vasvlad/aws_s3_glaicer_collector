@@ -26,7 +26,7 @@ Where  user@company.com is username in database
 
 Show information on web.
 
-1. You need copy files bs3.php index.html and file  base.conf to web directory 
+1. You need copy files bs3.php index.html and file base.conf and directories jquery and css to web directory 
 
 2. Run browser for view result  
 
