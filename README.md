@@ -34,8 +34,8 @@ Information:
 
 Database: r2
 
-Table s3objects
-`s3objects (
+
+CREATE TABLE `s3objects` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `id_parent` bigint(20) DEFAULT NULL,
   `id_user` int(11) DEFAULT NULL,
@@ -44,5 +44,8 @@ Table s3objects
   `size` bigint(20) DEFAULT NULL,
   `timepassing` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `actual` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-)
+  PRIMARY KEY (`id`),
+  KEY `id_parent` (`id_parent`),
+  KEY `id_user` (`id_user`)
+) ENGINE=InnoDB 
+
