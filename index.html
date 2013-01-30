@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Осваиваем jqGrid с Linkexchanger</title>
+
+<link rel="stylesheet" type="text/css" media="screen" href="./css/flick/jquery-ui-1.7.2.custom.css" />
+<link rel="stylesheet" type="text/css" media="screen" href="./css/ui.jqgrid.css" />
+
+<style>
+html, body {
+margin: 0;
+padding: 0;
+font-size: 80%;
+}
+</style>
+<script type="text/javascript" src="./js/jquery-1.8.0.min.js"></script>
+<script type="text/javascript" src="./js/i18n/grid.locale-en.js"></script>
+<script type="text/javascript" src="./js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript">
+jQuery().ready(function() {
+                 jQuery('#table_adjacency').jqGrid({
+                                   treeGrid: true,
+                                   treeGridModel:'adjacency',
+                                   ExpandColumn : 'title',
+                                   ExpandColClick: true,
+                                   url: 'bs3.php',
+                                   datatype: "json",
+                                   multiselect: true,
+                                   mtype: "POST",
+                                      colNames:["id","Раздел","Размер"],
+                                      colModel:[
+                                         {name:'id',index:'id', width:1, hidden:true, key:true},
+                                         {name:'title',index:'title', width:400},
+                                         {size:'size',index:'size', width:100}
+                                      ],
+                                      	gridComplete: function(){
+                                      	//alert('aaaa');
+                                      	},
+                                      onSelectRow: function(rowid) {
+	    var data= $("#table_adjacency").jqGrid('getRowData',rowid);
+	    // alert(data.id);
+	   },
+                                   treeIcons: {plus:'ui-icon-folder-collapsed',minus:'ui-icon-folder-open',leaf:'ui-icon-document'},
+                                   height:'auto',
+                                   caption:'дерево каталогов',
+                                   pager : "#ptreegrid",
+                                   hidegrid: false
+                 });
+                 
+                 jQuery("#table_adjacency").jqGrid('navGrid','#ptreegrid',{edit:false, add:false, del:false, search: true},//options
+		    {}, // edit options
+		    {}, // add options
+		    {}, // del options
+		    {caption :"",
+		    title : "найти записи",
+		    buttonicon: "ui-icon-search", 
+		    onClickButton: function() {
+			alert("tyt");
+		    }, 
+		    position: "last"} // search options
+		);
+                 
+});
+</script>
+
+
+
+
+</head>
+<body>
+    <table>
+        <tr>
+            <td valign="top"><table id="table_adjacency"></table></td>
+        </tr>
+    </table>
+    <div id="ptreegrid"></div>
+</body>
+
+</html>
