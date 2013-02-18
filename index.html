@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Осваиваем jqGrid с Linkexchanger</title>
+<title></title>
 
 <link rel="stylesheet" type="text/css" media="screen" href="./css/flick/jquery-ui-1.7.2.custom.css" />
 <link rel="stylesheet" type="text/css" media="screen" href="./css/ui.jqgrid.css" />
@@ -19,62 +19,111 @@ font-size: 80%;
 <script type="text/javascript" src="./js/jquery.jqGrid.min.js"></script>
 <script type="text/javascript">
 jQuery().ready(function() {
-                 jQuery('#table_adjacency').jqGrid({
-                                   treeGrid: true,
-                                   treeGridModel:'adjacency',
-                                   ExpandColumn : 'title',
-                                   ExpandColClick: true,
-                                   url: 'bs3.php',
-                                   datatype: "json",
-                                   multiselect: true,
-                                   mtype: "POST",
-                                      colNames:["id","Раздел","Размер"],
-                                      colModel:[
-                                         {name:'id',index:'id', width:1, hidden:true, key:true},
-                                         {name:'title',index:'title', width:400},
-                                         {size:'size',index:'size', width:100}
-                                      ],
-                                      	gridComplete: function(){
-                                      	//alert('aaaa');
-                                      	},
-                                      onSelectRow: function(rowid) {
-	    var data= $("#table_adjacency").jqGrid('getRowData',rowid);
-	    // alert(data.id);
-	   },
-                                   treeIcons: {plus:'ui-icon-folder-collapsed',minus:'ui-icon-folder-open',leaf:'ui-icon-document'},
-                                   height:'auto',
-                                   caption:'дерево каталогов',
-                                   pager : "#ptreegrid",
-                                   hidegrid: false
-                 });
-                 
-                 jQuery("#table_adjacency").jqGrid('navGrid','#ptreegrid',{edit:false, add:false, del:false, search: true},//options
-		    {}, // edit options
-		    {}, // add options
-		    {}, // del options
-		    {caption :"",
-		    title : "найти записи",
-		    buttonicon: "ui-icon-search", 
-		    onClickButton: function() {
-			alert("tyt");
-		    }, 
-		    position: "last"} // search options
-		);
+	jQuery('#table_adjacency').jqGrid({
+		treeGrid: true,
+		treeGridModel:'adjacency',
+		ExpandColumn : 'title',
+		ExpandColClick: true,
+		url: 'bs3.php?f=1',
+		datatype: "json",
+		multiselect: true,
+		mtype: "POST",
+		colNames:["id","Folder","Size"],
+		colModel:[
+			{name:'id',index:'id', width:1, hidden:true, key:true},
+			{name:'title',index:'title', width:400},
+			{size:'size',index:'size', width:100,align:"right"}
+		],
+		gridComplete: function(){
+		//alert('aaaa');
+		},
+		onSelectRow: function(rowid) {
+			var data= $("#table_adjacency").jqGrid('getRowData',rowid);
+			id = data.id;
+			title = data.title;
+			if(id == null) {
+				id=0; 
+				if (jQuery("#table_files").jqGrid('getGridParam','records') >0 ) { 
+						jQuery("#table_files").jqGrid('setGridParam',{url:"bs3.php?f=0&id="+id,page:1,search:false}); 
+						jQuery("#table_files").jqGrid('setCaption',"Files list: "+title) .trigger('reloadGrid'); 
+				} 
+			} else { 
+				jQuery("#table_files").jqGrid('setGridParam',{url:"bs3.php?f=0&id="+id,page:1,search:false}); 
+				jQuery("#table_files").jqGrid('setCaption',"Files list: : "+title) .trigger('reloadGrid'); 
+			}
+		},
+		treeIcons: {plus:'ui-icon-folder-collapsed',minus:'ui-icon-folder-open',leaf:'ui-icon-document'},
+		height:'auto',
+		caption:'Folders',
+		pager : "#ptreegrid",
+		hidegrid: false
+	});
+	jQuery("#table_files").jqGrid({
+		height: 100, 
+		url:'bs3.php?f=0&id=0', 
+		datatype: "json", 
+		colNames:['id','File', 'Size'],
+		colModel:[ 
+			{name:'id',index:'id', width:1, hidden:true, key:true},
+			{name:'title',index:'title', width:400},
+			{name:'size',index:'size', width:100,align:"right"}], 
+		rowNum:50, 
+		rowList:[50,100,150,200,250,300],
+		height:'auto',
+		sortname: 'id', 
+		viewrecords: true, 
+		sortorder: "asc", 
+		multiselect: true, 
+		caption:"Files",
+		multipleSearch: true,
+		pager : "#ptreefiles"});
+		
+		jQuery("#table_files").jqGrid('navGrid','#ptreefiles',{edit:false, add:false, del:false,view:true, search: false},//options
+		{},
+		{}, // add options
+		{}, // del options
+		{} // search options
+	);
+	jQuery("#table_files").jqGrid('navGrid','#ptreefiles').navButtonAdd('#ptreefiles',{caption: "Search",caption :"",title : "найти записи",buttonicon: "ui-icon-search", 
+		onClickButton: function() {
+			jQuery("#table_files").jqGrid('searchGrid', {closeOnEscape: true, multipleSearch: true, closeAfterSearch: true,sopt: ['cn','bw','ew','eq','ne','lt','le','gt','ge']} ); 
+		}, 
+		position: "last"
+	} );
+  //jQuery("#table_adjacency").jqGrid('navGrid','#ptreegrid',{edit:false, add:false, del:false, search: true},//options
+	//{}, // edit options
+	//{}, // add options
+	//{}, // del options
+	 //{caption :"",
+		 //   title : "найти записи",
+		   // buttonicon: "ui-icon-search", 
+		    //onClickButton: function() {
+			//alert("tyt");
+		    //}, 
+		    ///position: "last"} // search options
+		//);
                  
 });
 </script>
 
-
-
-
 </head>
 <body>
-    <table>
+    <table border='0'>
         <tr>
-            <td valign="top"><table id="table_adjacency"></table></td>
+            <td valign="top">
+            <table id="table_adjacency"></table>
+            <div id="ptreegrid"></div>
+            </td>
+            <td valign="top">&nbsp;&nbsp;&nbsp;</td>
+            <td valign="top">
+            <table id="table_files"></table>
+            <div id="ptreefiles"></div>
+            </td>
+
         </tr>
+        
     </table>
-    <div id="ptreegrid"></div>
+    
 </body>
 
 </html>
