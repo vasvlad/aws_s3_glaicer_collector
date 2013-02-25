@@ -66,14 +66,6 @@ class bs3s
 		//и число записей на странице
 		$page = $this->get('page',1);
 		$limit = $this->get('rows',-1);
-		$limita = $this->get('rovs',0);
-		if ($limita>0) {
-			$limit = $limita;
-		}
-		$pagea = $this->get('pagea',0);
-		if ($pagea>0) {
-			$page = $pagea;
-		}
 		//Если число записей в выборке и число записей на странице выдачи больше 0
 		//То посчитаем количество страниц в выборке
 		//Иначе количество страниц в выборке равно 1
@@ -109,50 +101,32 @@ class bs3s
 	 */
 	private function fetchRecords()
 	{
-		$folder     =  $this->get('f',0); //get id folder
-	//	$level      =  $this->get('n_level',0); //get id folder
-	//	$nlevel      =  $this->get('nlevel',0); //get id folder
-		if ($folder>0) {
-			if ($nlevel==0 ) {
-				$level = $level+1;
+	//echo " SELECT id, title, id_parent,size,folder FROM s3objects WHERE ".$this->buildQuery();
+		$result = $this->db->query(" SELECT id, title, id_parent,size,folder FROM s3objects WHERE ".$this->buildQuery());
+		$i =0;
+	
+		foreach($result as $row) {
+			if(!$row['id_parent']) $parent = 'NULL';
+			else $parent = $row['id_parent'];
+			$this->result['rows'][$i]['id']=$row['id'];
+			$id = $row['id'];
+			$selr = $this->db->query(" SELECT count(*) as count_c FROM s3objects WHERE id_parent=$id ");
+			$cou = 0;
+			foreach($selr as $row1) {
+				$cou = $row1['count_c'];
+			}
+			if ($cou) {
+				$is_leaf =false;
 			} else {
-				$level = $nlevel;
+				$is_leaf =true;
 			}
-			$se=" SELECT id, title, id_parent,size FROM s3objects WHERE ".$this->buildQuery();
-//			echo $se;
-			$result = $this->db->query(" SELECT id, title, id_parent,size FROM s3objects WHERE ".$this->buildQuery());
-			$i =0;
-			foreach($result as $row) {
-				if(!$row['id_parent']) $parent = 'NULL';
-				else $parent = $row['id_parent'];
-				$this->result['rows'][$i]['id']=$row['id'];
-				$id = $row['id'];
-				$selr = $this->db->query(" SELECT count(*) as count_c FROM s3objects WHERE id_parent=$id ");
-				$cou = 0;
-				foreach($selr as $row1) {
-					$cou = $row1['count_c'];
-				}
-				if ($cou) {
-					$is_leaf =false;
-				} else {
-					$is_leaf =true;
-				}
-				$level=$this->SearchParent($id);
-				$indent='';
-				for ($j=0;$j<$level;$j++){
-				    $indent.='&nbsp;&nbsp;&nbsp;&nbsp;';
-				}
-				$this->result['rows'][$i]['cell'] = array($row['id'], $indent.$row['title'],$row['size']);
-				$i++;
+			$level=$this->SearchParent($id);
+			$indent='';
+			for ($j=0;$j<$level;$j++){
+			    $indent.='&nbsp;&nbsp;&nbsp;&nbsp;';
 			}
-		} else {
-			$result = $this->db->query(" SELECT id, title, id_parent,size FROM s3objects WHERE ".$this->buildQuery());
-			$i=0; 
-			foreach($result as $myrow) {
-				$this->result['rows'][$i]['id']=$myrow['id'];
-				$this->result['rows'][$i]['cell']=array($myrow['id'],$myrow['title'],$myrow['size']); 
-				$i+=1;
-			}
+			$this->result['rows'][$i]['cell'] = array($row['id'], $row['title'],$row['size'],$level,$row['folder']);
+			$i++;
 		}
 	}
 	
@@ -194,55 +168,30 @@ class bs3s
 	private function buildjqGridWhere()
 	{
 		$id     =  $this->get('id',0); //get id folder
-		$folder     =  $this->get('f',0); //get id folder
 		$search = $this->get('_search','false');
-		if ($folder==1) {
-			if ('true' == strtolower($search)) {
-				$searchData = json_decode(stripslashes($_GET['filters']));
-				$firstElem = true;
-				$qWhere = " folder=1 AND ";
+		if ('true' == strtolower($search)) {
+			$searchData = json_decode(stripslashes($_GET['filters']));
+			$firstElem = true;
+			$qWhere = " 1 AND ";
 	//			print_r($searchData);
 			 //объединяем все полученные условия
-				foreach ($searchData->rules as $rule) {
-					$field = $rule->field;
-					$value = $rule->data;
-					$operation = $rule->op;
-					if (!$firstElem) {
+			foreach ($searchData->rules as $rule) {
+				$field = $rule->field;
+				$value = $rule->data;
+				$operation = $rule->op;
+				if (!$firstElem) {
 			         //объединяем условия (с помощью AND или OR)
-						$qWhere .= ' '.$searchData->groupOp.' ';
-					} else {
-						$firstElem = false;
-					}
-					$qWhere.= $field.' '.$this->buildOperator($operation,$value);
+					$qWhere .= ' '.$searchData->groupOp.' ';
+				} else {
+					$firstElem = false;
 				}
-				$this->query['where']= $qWhere;
-			} else {
-				$this->query['where'] = " folder=1"; 
+				$qWhere.= $field.' '.$this->buildOperator($operation,$value);
 			}
-			
+			$this->query['where']= $qWhere;
 		} else {
-			if ('true' == strtolower($search)) {
-				$searchData = json_decode(stripslashes($_GET['filters']));
-				$firstElem = true;
-				$qWhere = " id_parent=$id  and folder=0 AND ";
-			 //объединяем все полученные условия
-				foreach ($searchData->rules as $rule) {
-					$field = $rule->field;
-					$value = $rule->data;
-					$operation = $rule->op;
-					if (!$firstElem) {
-			         //объединяем условия (с помощью AND или OR)
-						$qWhere .= ' '.$searchData->groupOp.' ';
-					} else {
-						$firstElem = false;
-					}
-					$qWhere.= $field.' '.$this->buildOperator($operation,$value);
-				}
-				$this->query['where']= $qWhere;
-			} else {
-				$this->query['where'] = "id_parent=$id and folder=0";	
-			}
+				$this->query['where'] = " 1 "; 
 		}
+			
 	}
 	
 	/**
