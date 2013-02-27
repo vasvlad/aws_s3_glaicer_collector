@@ -25,6 +25,10 @@ class bs3s
 		'rows' => array()
 	);
 	private $db;
+	private $level;
+	private $page=1;
+	private $id_parent;
+	private $limit;
 	
 	public function __construct() 
 	{
@@ -64,21 +68,16 @@ class bs3s
 		
 		//Получаем номер страницы, которую нужно вывести 
 		//и число записей на странице
-		$page = $this->get('page',1);
+		$page = $this->page;
 		$limit = $this->get('rows',-1);
+		$limit=100;
+		$this->limit=$limit;
 		//Если число записей в выборке и число записей на странице выдачи больше 0
 		//То посчитаем количество страниц в выборке
 		//Иначе количество страниц в выборке равно 1
-		if($count > 0 && $limit > 0)
-			$totalPages = ceil($count/$limit);
-		else
-			$totalPages = 1;
-		
+		$totalPages=1;
 		//Если страница, которую запросил пользователь не существует,
 		//то установим в качестве страницы выдачи последнюю страницу
-		if($page > $totalPages)
-			$page = $totalPages;
-		
 		//Запись в выборке, с которой начинается выдача
 		$start = $limit*$page - $limit;
 		
@@ -101,33 +100,51 @@ class bs3s
 	 */
 	private function fetchRecords()
 	{
-	//echo " SELECT id, title, id_parent,size,folder FROM s3objects WHERE ".$this->buildQuery();
-		$result = $this->db->query(" SELECT id, title, id_parent,size,folder FROM s3objects WHERE ".$this->buildQuery());
-		$i =0;
-	
-		foreach($result as $row) {
-			if(!$row['id_parent']) $parent = 'NULL';
-			else $parent = $row['id_parent'];
-			$this->result['rows'][$i]['id']=$row['id'];
-			$id = $row['id'];
-			$selr = $this->db->query(" SELECT count(*) as count_c FROM s3objects WHERE id_parent=$id ");
+		$nlevel      =  $this->get('nlevel',0); //get id folder
+			$se=" SELECT id, title, id_parent,size FROM s3objects WHERE ".$this->buildQuery().$this->query['limit'];
+			$result = $this->db->query(" SELECT id, title, id_parent,size FROM s3objects WHERE ".$this->buildQuery().$this->query['limit']);
+			$i =0;
+			foreach($result as $row) {
+				if(!$row['id_parent']) $parent = 'NULL';
+				else $parent = $row['id_parent'];
+				$this->result['rows'][$i]['id']=$row['id']."_".$this->page;
+				$id = $row['id'];
+				$selr = $this->db->query(" SELECT count(*) as count_c FROM s3objects WHERE id_parent=$id ");
+				$cou = 0;
+				foreach($selr as $row1) {
+					$cou = $row1['count_c'];
+				}
+				if ($cou) {
+					$is_leaf =false;
+				} else {
+					$is_leaf =true;
+				}
+				$this->result['rows'][$i]['cell'] = array($row['id'].'_'.$this->page, $row['title'],$row['size'],$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
+				$i++;
+			}
+			$result = $this->db->query(" SELECT count(*) as count_c  FROM s3objects WHERE ".$this->buildQuery());
 			$cou = 0;
-			foreach($selr as $row1) {
-				$cou = $row1['count_c'];
+//			$node = $this->get('nodeid',0);
+			foreach($result as $row) {
+				$cou = $row['count_c'];
 			}
-			if ($cou) {
-				$is_leaf =false;
-			} else {
-				$is_leaf =true;
+			$display=$this->limit*$this->page;
+			if ($cou>$display) {
+				$ss=" SELECT id_parent,title FROM s3objects WHERE id=".$this->id_parent;
+//				echo $ss;
+				$result = $this->db->query($ss);
+				$id_pp = 0;
+				$name='';
+				foreach($result as $row) {
+				    $id_pp = $row['id_parent'];
+				    $name = $row['title'];
+				}
+				$this->result['records']++;
+				$this->level =  $this->get('n_level',0); //get id folder
+				$page_child=$this->page+1;
+				$this->result['rows'][$i]['id']=$this->id_parent."_".$page_child;
+				$this->result['rows'][$i]['cell'] = array($this->id_parent.'_'.$page_child, 'Далee:('.$name.')','',$this->level,$id_pp.'_'.$this->page ,false, FALSE);
 			}
-			$level=$this->SearchParent($id);
-			$indent='';
-			for ($j=0;$j<$level;$j++){
-			    $indent.='&nbsp;&nbsp;&nbsp;&nbsp;';
-			}
-			$this->result['rows'][$i]['cell'] = array($row['id'], $row['title'],$row['size'],$level,$row['folder']);
-			$i++;
-		}
 	}
 	
 	
@@ -167,31 +184,19 @@ class bs3s
 	 */
 	private function buildjqGridWhere()
 	{
-		$id     =  $this->get('id',0); //get id folder
-		$search = $this->get('_search','false');
-		if ('true' == strtolower($search)) {
-			$searchData = json_decode(stripslashes($_GET['filters']));
-			$firstElem = true;
-			$qWhere = " 1 AND ";
-	//			print_r($searchData);
-			 //объединяем все полученные условия
-			foreach ($searchData->rules as $rule) {
-				$field = $rule->field;
-				$value = $rule->data;
-				$operation = $rule->op;
-				if (!$firstElem) {
-			         //объединяем условия (с помощью AND или OR)
-					$qWhere .= ' '.$searchData->groupOp.' ';
-				} else {
-					$firstElem = false;
-				}
-				$qWhere.= $field.' '.$this->buildOperator($operation,$value);
-			}
-			$this->query['where']= $qWhere;
+		$this->id_parent=0;
+		$this->page=1;
+		$this->level  =  $this->get('n_level',0); //get id folder
+		$node = $this->get('nodeid',0);
+		if($node) {
+			list($id_parent,$page_child)= split ("_", $node);
+			$this->query['where'] = 'id_parent ='.$id_parent;
+			$this->level = $this->level+1;
+			$this->id_parent=$id_parent;
+			$this->page=$page_child;
 		} else {
-				$this->query['where'] = " 1 "; 
-		}
-			
+			$this->query['where'] = 'id_parent=0';   // Select Root 
+		} 
 	}
 	
 	/**
@@ -229,7 +234,7 @@ class bs3s
 		
 		$result = $this->query['where'].' ';
 		$result .= $this->query['order'].' ';
-		$result .= $this->query['limit'];
+	//	$result .= $this->query['limit'];
 		return $result;
 	}
 	
@@ -238,30 +243,6 @@ class bs3s
 	{
 		echo json_encode($this->result);
 	}
-	    /* Search all parents of this object */    
-	private function SearchParent($id)
-	{
-		$id_parent="";
-		$level=0;
-		$sel="SELECT id_parent FROM s3objects WHERE id=$id AND id_parent=0 AND actual=1;";
-		$result = $this->db->query($sel);
-		$num=$result->fetchColumn();
-		if ($num == 0) {
-			$idp=$id;
-			while ($idp>0){
-				$sel="SELECT * FROM s3objects WHERE id=$idp AND actual=1;";
-				$result = $this->db->query($sel);
-				foreach($result as $row) {
-					$id_parent.=$row['id']."," ;
-					$idp=$row['id_parent'] ;
-					$level++;
-				}
-			} 
-				$id_parent=substr($id_parent,0,strlen($id_parent)-1);
-		}
-		return $level;
-	}
-
 }
 
 $command = new bs3s();

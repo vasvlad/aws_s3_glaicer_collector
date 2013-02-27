@@ -21,63 +21,57 @@ font-size: 80%;
 id_node=0;
 level=0;
 jQuery().ready(function() {
-	jQuery('#table_adjacency').jqGrid({
-		url: 'bs3.php?f=1',
-		datatype: "json",
-		multiselect: false,
-		rowNum:5,
-		rowList:[5,10,15,20,25,30],
-		colNames:["id","Name","Size","",""],
-		colModel:[
-			{name:'id',index:'id', width:1, hidden:true, key:true},
-			{name:'title',index:'title', width:400},
-			{name:'size',index:'size', width:100,align:"right"},
-			{name:'level',index:'level', width:-1,hidden:true},
-			{name:'folder',index:'folder', width:-1,hidden:true}
-		],
-		afterInsertRow: function(rowid, aData) {
-		    level=aData.level;
-		    indent='';
-		    for (j=0;j<level;j++) {
-		        indent+='&nbsp;';
-		    }
-		    level1=level*10;
-		    level=level*18;
-		    level1=level-18;
-		    class_icon='';
-		    folder=aData.folder;
-		    if (folder==1){
-			class_icon='ui-icon treeclick ui-icon-triangle-1-s tree-minus';
-		    }else{
-			class_icon='ui-icon ui-icon-document-b tree-leaf treeclick';
-		    }
-		    vaa='';
-		    vaa+='<div class="tree-wrap tree-wrap-ltr" style="width:'+level+'px;">';
-		    vaa+='<div class="'+class_icon+'" style="left:'+level1+'px;"></div>';
-		    vaa+='</div>';
-		    vaa+=aData.title;
-		    jQuery('#table_adjacency').setCell(rowid, 'title', vaa);
-		},
-//		treeIcons: {plus:'ui-icon-folder-collapsed',minus:'ui-icon-folder-open',leaf:'ui-icon-document'},
-		height:'auto',
-		caption:'Folders',
-		pager : "#ptreegrid",
-		hidegrid: false
-	});
-	jQuery("#table_adjacency").jqGrid('navGrid','#ptreegrid',{edit:false, add:false, del:false,view:true, search: false},//options
-	{},
-	{}, // add options
-	{}, // del options
-	{} // search options
-	);
-	jQuery("#table_adjacency").jqGrid('navGrid','#ptreegrid').navButtonAdd('#ptreegrid',{caption: "Search",caption :"",title : "Search folder",buttonicon: "ui-icon-search", 
-		onClickButton: function() {
-			jQuery("#table_adjacency").jqGrid('searchGrid', {closeOnEscape: true, multipleSearch: true, closeAfterSearch: true,sopt: ['cn','bw','ew','eq','ne','lt','le','gt','ge']} ); 
-		}, 
-		position: "last"
-	} );
+                 jQuery('#table_adjacency').jqGrid({
+                                   treeGrid: true,
+                                   treeGridModel:'adjacency',
+                                   ExpandColumn : 'title',
+                                   ExpandColClick: true,
+                                   url: 'bs3.php',
+                                   datatype: "json",
+                                   multiselect: true,
+                                   mtype: "POST",
+                                      colNames:["id","Раздел","Размер"],
+                                      colModel:[
+                                         {name:'id',index:'id', width:1, hidden:true, key:true},
+                                         {name:'title',index:'title', width:400},
+                                         {size:'size',index:'size', width:100}
+                                      ],
+                                      	gridComplete: function(){
+                                      	//alert('aaaa');
+                                      	},
+//                                      onSelectRow: function(rowid) {
+//	    var data= $("#table_adjacency").jqGrid('getRowData',rowid);
+	    // alert(data.id);
+//	   },
+                                   treeIcons: {plus:'ui-icon-folder-collapsed',minus:'ui-icon-folder-open',leaf:'ui-icon-document'},
+                                   height:'auto',
+                                   caption:'дерево каталогов',
+                                   pager : "#ptreegrid",
+                                   hidegrid: false
+                 });
+                 
+                 jQuery("#table_adjacency").jqGrid('navGrid','#ptreegrid',{edit:false, add:false, del:false, search: true},//options
+		    {}, // edit options
+		    {}, // add options
+		    {}, // del options
+		    {caption :"",
+		    title : "найти записи",
+		    buttonicon: "ui-icon-search", 
+		    onClickButton: function() {
+			alert("tyt");
+		    }, 
+		    position: "last"} // search options
+		);
                  
 });
+
+function lalala() {
+dd=jQuery("#my_select option:selected").val();
+rows=3;
+pp=dd;
+	jQuery("#table_adjacency").jqGrid('setGridParam',{url:"bs3.php?f=1&id=189&pagea="+pp+"&id_node="+id_node+"&nlevel="+level+"&rovs="+rows,search:false}); 
+	jQuery("#table_adjacency").jqGrid('setCaption',"folders: ") .trigger('reloadGrid'); 
+}
 </script>
 
 </head>
