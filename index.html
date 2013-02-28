@@ -65,17 +65,16 @@ jQuery().ready(function() {
                  
 });
 
-function lalala() {
-dd=jQuery("#my_select option:selected").val();
-rows=3;
-pp=dd;
-	jQuery("#table_adjacency").jqGrid('setGridParam',{url:"bs3.php?f=1&id=189&pagea="+pp+"&id_node="+id_node+"&nlevel="+level+"&rovs="+rows,search:false}); 
-	jQuery("#table_adjacency").jqGrid('setCaption',"folders: ") .trigger('reloadGrid'); 
-}
+$(document).ready(function(){
+$("#load").click(function(){
+$("#response").load("load.php");
+});
+});
 </script>
 
 </head>
 <body>
+<button id="load">Нажмите для обновления</button>
     <table border='0'>
         <tr>
             <td valign="top">
@@ -84,6 +83,7 @@ pp=dd;
             </td>
         </tr>
     </table>
+    
 </body>
 
 </html>

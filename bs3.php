@@ -102,12 +102,14 @@ class bs3s
 	{
 		$nlevel      =  $this->get('nlevel',0); //get id folder
 			$se=" SELECT id, title, id_parent,size FROM s3objects WHERE ".$this->buildQuery().$this->query['limit'];
-			$result = $this->db->query(" SELECT id, title, id_parent,size FROM s3objects WHERE ".$this->buildQuery().$this->query['limit']);
+			//echo $se;
+			$result = $this->db->query(" SELECT id, title, id_parent,size,folder FROM s3objects WHERE ".$this->buildQuery().$this->query['limit']);
+			
 			$i =0;
 			foreach($result as $row) {
 				if(!$row['id_parent']) $parent = 'NULL';
 				else $parent = $row['id_parent'];
-				$this->result['rows'][$i]['id']=$row['id']."_".$this->page;
+				$this->result['rows'][$i]['id']=$row['id']."_1";//.$this->page;
 				$id = $row['id'];
 				$selr = $this->db->query(" SELECT count(*) as count_c FROM s3objects WHERE id_parent=$id ");
 				$cou = 0;
@@ -119,7 +121,11 @@ class bs3s
 				} else {
 					$is_leaf =true;
 				}
-				$this->result['rows'][$i]['cell'] = array($row['id'].'_'.$this->page, $row['title'],$row['size'],$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
+				if ($row['folder']==1){
+				    $is_leaf =false;
+				}
+				//$this->result['rows'][$i]['cell'] = array($row['id'].'_'.$this->page, $row['title'],$row['size'],$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
+				$this->result['rows'][$i]['cell'] = array($row['id'].'_1', $row['title'],$row['size'],$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
 				$i++;
 			}
 			$result = $this->db->query(" SELECT count(*) as count_c  FROM s3objects WHERE ".$this->buildQuery());
@@ -130,6 +136,12 @@ class bs3s
 			}
 			$display=$this->limit*$this->page;
 			if ($cou>$display) {
+				$first=$display+1;
+				if (($cou-$display)<$this->limit){
+				    $last=$cou;
+				}else{
+				    $last=$display+$this->limit;
+				}
 				$ss=" SELECT id_parent,title FROM s3objects WHERE id=".$this->id_parent;
 //				echo $ss;
 				$result = $this->db->query($ss);
@@ -143,7 +155,7 @@ class bs3s
 				$this->level =  $this->get('n_level',0); //get id folder
 				$page_child=$this->page+1;
 				$this->result['rows'][$i]['id']=$this->id_parent."_".$page_child;
-				$this->result['rows'][$i]['cell'] = array($this->id_parent.'_'.$page_child, 'Далee:('.$name.')','',$this->level,$id_pp.'_'.$this->page ,false, FALSE);
+				$this->result['rows'][$i]['cell'] = array($this->id_parent.'_'.$page_child, 'Next:('.$name.' with '.$first.' on '.$last.')','',$this->level,$id_pp.'_'.$this->page ,false, FALSE);
 			}
 	}
 	
