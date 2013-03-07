@@ -124,8 +124,16 @@ class bs3s
 				if ($row['folder']==1){
 				    $is_leaf =false;
 				}
+				$title=$row['title'];
+				$is_bucket =false;
+				if ($row['id_parent']==0){
+				    $is_bucket =true;
+				    $title="<b><font color='blue'>".$title."</font></b>";
+				}
+				
+				
 				//$this->result['rows'][$i]['cell'] = array($row['id'].'_'.$this->page, $row['title'],$row['size'],$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
-				$this->result['rows'][$i]['cell'] = array($row['id'].'_1', $row['title'],$row['size'],$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
+				$this->result['rows'][$i]['cell'] = array($row['id'].'_1', $title,$row['size'],$is_bucket,$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
 				$i++;
 			}
 			$result = $this->db->query(" SELECT count(*) as count_c  FROM s3objects WHERE ".$this->buildQuery());
@@ -151,11 +159,17 @@ class bs3s
 				    $id_pp = $row['id_parent'];
 				    $name = $row['title'];
 				}
+				$title=$row['title'];
+				$is_bucket =false;
+				if ($id_pp==0){
+				    $is_bucket =true;
+				    $title="<b><font color='blue'>".$title."</font></b>";
+				}
 				$this->result['records']++;
 				$this->level =  $this->get('n_level',0); //get id folder
 				$page_child=$this->page+1;
 				$this->result['rows'][$i]['id']=$this->id_parent."_".$page_child;
-				$this->result['rows'][$i]['cell'] = array($this->id_parent.'_'.$page_child, 'Next:('.$name.' with '.$first.' on '.$last.')','',$this->level,$id_pp.'_'.$this->page ,false, FALSE);
+				$this->result['rows'][$i]['cell'] = array($this->id_parent.'_'.$page_child, $name.'('.$first.'-'.$last.' of '.$cou.')','',$is_bucket,$this->level,$id_pp.'_'.$this->page ,false, FALSE);
 			}
 	}
 	

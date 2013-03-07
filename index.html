@@ -23,6 +23,7 @@ level=0;
 jQuery().ready(function() {
                  jQuery('#table_adjacency').jqGrid({
                                    treeGrid: true,
+                                   gridview:false,
                                    treeGridModel:'adjacency',
                                    ExpandColumn : 'title',
                                    ExpandColClick: true,
@@ -30,22 +31,30 @@ jQuery().ready(function() {
                                    datatype: "json",
                                    multiselect: true,
                                    mtype: "POST",
-                                      colNames:["id","Раздел","Размер"],
+                                      colNames:["id","Name","Size",""],
                                       colModel:[
                                          {name:'id',index:'id', width:1, hidden:true, key:true},
                                          {name:'title',index:'title', width:400},
-                                         {size:'size',index:'size', width:100}
+                                         {name:'size',index:'size', width:100},
+                                         {name:'is_bucket',index:'is_bucket', width:100, hidden:true}
                                       ],
                                       	gridComplete: function(){
-                                      	//alert('aaaa');
+//                                      	alert('aaaa');
                                       	},
 //                                      onSelectRow: function(rowid) {
+//alert('Я работаю!!');
 //	    var data= $("#table_adjacency").jqGrid('getRowData',rowid);
 	    // alert(data.id);
-//	   },
+//				    },
+				    afterInsertRow: function(row_id, row_data) {
+				    alert('1');
+//					    cel=row_data.is_bucket;
+//				    alert(cel);
+  //		  			    jQuery('#table_adjacency').jqGrid('setCell',row_id,'name','',{'color':red,'font-weight':'bold'});
+                                    },
                                    treeIcons: {plus:'ui-icon-folder-collapsed',minus:'ui-icon-folder-open',leaf:'ui-icon-document'},
                                    height:'auto',
-                                   caption:'дерево каталогов',
+                                   caption:'tree of folders',
                                    pager : "#ptreegrid",
                                    hidegrid: false
                  });
@@ -74,7 +83,6 @@ $("#response").load("load.php");
 
 </head>
 <body>
-<button id="load">Нажмите для обновления</button>
     <table border='0'>
         <tr>
             <td valign="top">
