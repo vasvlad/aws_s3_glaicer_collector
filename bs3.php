@@ -127,11 +127,20 @@ class bs3s
 				$title=$row['title'];
 				$is_bucket =false;
 				if ($row['id_parent']==0){
-				    $is_bucket =true;
-				    $title="<b><font color='blue'>".$title."</font></b>";
+					$is_bucket =true;
+					$title="<font color='vodka'>".$title."</font>";
+				} else {
+					$id_pp=$row['id_parent'];
+					$selr = $this->db->query(" SELECT * FROM s3objects WHERE id=$id_pp ");
+					$p_r = 0;
+					foreach($selr as $row1) {
+						$p_r = $row1['id_parent'];
+					}
+					if ($p_r==0) {
+						$title="<b><font color='blue'>".$title."</font></b>";
+					
+					}
 				}
-				
-				
 				//$this->result['rows'][$i]['cell'] = array($row['id'].'_'.$this->page, $row['title'],$row['size'],$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
 				$this->result['rows'][$i]['cell'] = array($row['id'].'_1', $title,$row['size'],$is_bucket,$this->level,$parent.'_'.$this->page , $is_leaf, FALSE);
 				$i++;
@@ -163,7 +172,17 @@ class bs3s
 				$is_bucket =false;
 				if ($id_pp==0){
 				    $is_bucket =true;
-				    $title="<b><font color='blue'>".$title."</font></b>";
+				    $title="<font color='vodka'>".$title."</font>";
+				} else {
+					$selr = $this->db->query(" SELECT * FROM s3objects WHERE id=$id_pp ");
+					$p_r = 0;
+					foreach($selr as $row1) {
+						$p_r = $row1['id_parent'];
+					}
+					if ($p_r==0) {
+						$title="<b><font color='blue'>".$title."</font></b>";
+					
+					}
 				}
 				$this->result['records']++;
 				$this->level =  $this->get('n_level',0); //get id folder
